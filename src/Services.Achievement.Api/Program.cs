@@ -1,4 +1,18 @@
 ﻿using System.Threading.Tasks;
+using Convey;
+using Convey.Logging;
+using Convey.Secrets.Vault;
+using Convey.Types;
+using Convey.WebApi;
+using Convey.WebApi.CQRS;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Services.Achievement.Application;
+using Services.Achievement.Application.DTO;
+using Services.Achievement.Application.Queries;
+using Services.Achievement.Infrastructure;
 
 namespace Services.Achievement.Api
 {
@@ -20,7 +34,7 @@ namespace Services.Achievement.Api
                     .UseInfrastructure()
                     .UseDispatcherEndpoints(endpoints => endpoints
                         .Get("", ctx => ctx.Response.WriteAsync(ctx.RequestServices.GetService<AppOptions>().Name))
-                        .Get<GetUserScore, UserScoreDto>("score/{userId}")))
+                        .Get<GetUserAchievements, UserAchievementDto>("achievements/{userId}")))
                 .UseLogging()
                 .UseVault();
     }
