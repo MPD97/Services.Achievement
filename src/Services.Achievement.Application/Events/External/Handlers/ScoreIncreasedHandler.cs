@@ -36,17 +36,25 @@ namespace Services.Achievement.Application.Events.External.Handlers
             if (!userAchievement.IsAbleToAddAnyAchievement(@event.TotalScore, @event.AmountAdded))
                 return;
 
-            var achievement = userAchievement.CreateAchievement(@event.TotalScore,
-                @event.AmountAdded, _dateTimeProvider.Now);
+            var achievement = userAchievement.CreateAchievement(@event.TotalScore, _dateTimeProvider.Now);
+           
+            while (achievement is {})
+            {
+                if (achievement is null)
+                    throw new AchievementNullException();
 
-            if (achievement is null)
-                throw new AchievementNullException();
+                userAchievement.AddAchievement(achievement, @event.TotalScore);
+                await _userAchievementRepository.UpdateAsync(userAchievement);
             
-            userAchievement.AddAchievement(achievement, @event.TotalScore);
-            await _userAchievementRepository.UpdateAsync(userAchievement);
+                if (!userAchievement.IsAbleToAddAnyAchievement(@event.TotalScore, @event.AmountAdded))
+                    return;
+                
+                achievement = userAchievement.CreateAchievement(@event.TotalScore, _dateTimeProvider.Now);
+            }
             
             var events = _eventMapper.MapAll(userAchievement.Events);
             await _messageBroker.PublishAsync(events);
+
         }
     }
 }

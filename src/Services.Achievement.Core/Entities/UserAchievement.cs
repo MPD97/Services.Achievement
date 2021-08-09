@@ -7,42 +7,70 @@ using Services.Achievement.Core.Exceptions;
 
 namespace Services.Achievement.Core.Entities
 {
-    public class UserAchievement: AggregateRoot
+    public class UserAchievement : AggregateRoot
     {
         public const int BronzeScore = 30;
         public const int SilverScore = 100;
         public const int GoldScore = 300;
         public const int MasterScore = 1000;
-        
+
         private ISet<Achievement> _achievements = new HashSet<Achievement>();
-        public IEnumerable<Achievement> Achievements {   
+
+        public IEnumerable<Achievement> Achievements
+        {
             get => _achievements;
-            private set => _achievements = new HashSet<Achievement>(value); 
+            private set => _achievements = new HashSet<Achievement>(value);
         }
 
-        public UserAchievement(AggregateId id, IEnumerable<Achievement> achievements)
+        public UserAchievement(Guid id, IEnumerable<Achievement> achievements)
         {
             Id = id;
-            Achievements = achievements;
+            Achievements = achievements ?? Enumerable.Empty<Achievement>();
         }
 
-        public Achievement CreateAchievement(int score, int amountAdded, DateTime createdAt)
+        public Achievement CreateAchievement(int score, DateTime createdAt)
         {
-            var scoreBefore = score - amountAdded;
-            switch (scoreBefore)
+            switch (score)
             {
-                case < BronzeScore when score > BronzeScore:
-                    return Achievement.AchievementBronze(Guid.NewGuid(), createdAt);
-                case < SilverScore when score > SilverScore:
-                    return Achievement.AchievementSilver(Guid.NewGuid(), createdAt);
-                case < GoldScore when score > GoldScore:
-                    return Achievement.AchievementGold(Guid.NewGuid(), createdAt);
-                case < MasterScore when score > MasterScore:
-                    return Achievement.AchievementMaster(Guid.NewGuid(), createdAt);
+                case > MasterScore:
+                    if (!_achievements.Any(a => a.Type == AchievementType.Master))
+                        return Achievement.AchievementMaster(Guid.NewGuid(), createdAt);
+                    else if (!_achievements.Any(a => a.Type == AchievementType.Gold))
+                        return Achievement.AchievementGold(Guid.NewGuid(), createdAt);
+                    else if (!_achievements.Any(a => a.Type == AchievementType.Silver))
+                        return Achievement.AchievementSilver(Guid.NewGuid(), createdAt);
+                    else if (!_achievements.Any(a => a.Type == AchievementType.Bronze))
+                        return Achievement.AchievementBronze(Guid.NewGuid(), createdAt);
+                    break;
+
+                case > GoldScore:
+                    if (!_achievements.Any(a => a.Type == AchievementType.Gold))
+                        return Achievement.AchievementGold(Guid.NewGuid(), createdAt);
+                    else if (!_achievements.Any(a => a.Type == AchievementType.Silver))
+                        return Achievement.AchievementSilver(Guid.NewGuid(), createdAt);
+                    else if (!_achievements.Any(a => a.Type == AchievementType.Bronze))
+                        return Achievement.AchievementBronze(Guid.NewGuid(), createdAt);
+                    break;
+
+                case > SilverScore:
+                    if (!_achievements.Any(a => a.Type == AchievementType.Silver))
+                        return Achievement.AchievementSilver(Guid.NewGuid(), createdAt);
+                    else if (!_achievements.Any(a => a.Type == AchievementType.Bronze))
+                        return Achievement.AchievementBronze(Guid.NewGuid(), createdAt);
+                    break;
+
+                case > BronzeScore:
+                    if (!_achievements.Any(a => a.Type == AchievementType.Bronze))
+                        return Achievement.AchievementBronze(Guid.NewGuid(), createdAt);
+                    break;
+                
                 default:
-                    return null;
+                    throw new NotImplementedException();
             }
+
+            throw new NotImplementedException();
         }
+
         public bool IsAbleToAddAnyAchievement(int score, int amountAdded)
         {
             var scoreBefore = score - amountAdded;
@@ -54,9 +82,27 @@ namespace Services.Achievement.Core.Entities
                 case < MasterScore when score > MasterScore:
                     return true;
                 default:
+                    break;
+            }
+
+            switch (score)
+            {
+                case > MasterScore when !_achievements.Any(a => a.Type == AchievementType.Bronze)
+                                        || !_achievements.Any(a => a.Type == AchievementType.Silver)
+                                        || !_achievements.Any(a => a.Type == AchievementType.Gold)
+                                        || !_achievements.Any(a => a.Type == AchievementType.Master):
+                case > GoldScore when !_achievements.Any(a => a.Type == AchievementType.Bronze)
+                                      || !_achievements.Any(a => a.Type == AchievementType.Silver)
+                                      || !_achievements.Any(a => a.Type == AchievementType.Gold):
+                case > SilverScore when !_achievements.Any(a => a.Type == AchievementType.Bronze)
+                                        || !_achievements.Any(a => a.Type == AchievementType.Silver):
+                case > BronzeScore when !_achievements.Any(a => a.Type == AchievementType.Bronze):
+                    return true;
+                default:
                     return false;
             }
         }
+
         public bool IsAbleToAddAchievement(Achievement achievement, int newScore)
         {
             switch (achievement.Type)
@@ -80,11 +126,12 @@ namespace Services.Achievement.Core.Entities
                 default:
                     throw new ArgumentOutOfRangeException(nameof(achievement.Type));
             }
+
             if (_achievements.Any(a => a.Type == achievement.Type))
                 return false;
             return true;
         }
-        
+
         public void AddAchievement(Achievement achievement, int newScore)
         {
             if (!IsAbleToAddAchievement(achievement, newScore))
