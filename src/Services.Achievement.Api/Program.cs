@@ -22,6 +22,7 @@ namespace Services.Achievement.Api
             => await CreateWebHostBuilder(args)
                 .Build()
                 .RunAsync();
+
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
             => WebHost.CreateDefaultBuilder(args)
                 .ConfigureServices(services => services
@@ -35,7 +36,6 @@ namespace Services.Achievement.Api
                     .UseDispatcherEndpoints(endpoints => endpoints
                         .Get("", ctx => ctx.Response.WriteAsync(ctx.RequestServices.GetService<AppOptions>().Name))
                         .Get<GetUserAchievements, UserAchievementDto>("achievements/{userId}")))
-                .UseLogging()
-                .UseVault();
+                .UseLogging();
     }
 }
