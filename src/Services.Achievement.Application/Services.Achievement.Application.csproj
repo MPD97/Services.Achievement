@@ -17,10 +17,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Commands" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Services.Achievement.Core\Services.Achievement.Core.csproj" />
     </ItemGroup>
     
