@@ -18,15 +18,15 @@ namespace Services.Achievement.Core.Entities
         }
 
         public static Achievement AchievementBronze(Guid id, DateTime createdAt)
-            => new Achievement(id, AchievementType.Bronze, "Bronze energy medal", createdAt);
+            => new (id, AchievementType.Bronze, "Bronze energy medal", createdAt);
         
         public static Achievement AchievementSilver(Guid id, DateTime createdAt)
-            => new Achievement(id, AchievementType.Silver, "Silver energy medal", createdAt);
+            => new (id, AchievementType.Silver, "Silver energy medal", createdAt);
         
         public static Achievement AchievementGold(Guid id, DateTime createdAt)
-            => new Achievement(id, AchievementType.Gold, "Gold energy medal", createdAt);
+            => new (id, AchievementType.Gold, "Gold energy medal", createdAt);
         
         public static Achievement AchievementMaster(Guid id, DateTime createdAt)
-            => new Achievement(id, AchievementType.Master, "Master of energy", createdAt);
+            => new (id, AchievementType.Master, "Master of energy", createdAt);
     }
 }
